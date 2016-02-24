@@ -37,27 +37,26 @@ THE SOFTWARE.
 // for both classes must be in the include path of your project
 #include "I2Cdev.h"
 #include "MPU6050.h"
-
-// class default I2C address is 0x68
-// specific I2C addresses may be passed as a parameter here
-// AD0 low = 0x68 (default for InvenSense evaluation board)
-// AD0 high = 0x69
+#include <SPI.h>;
 MPU6050 accelgyro;
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 int16_t mx, my, mz;
 
+#define chipSelectPin 7
+
 #define LED_PIN 13
 bool blinkState = false;
 
 void setup() {
-    // join I2C bus (I2Cdev library doesn't do this automatically)
+    // join I2C bus
     Wire.begin();
 
+    //Start the SPI library
+    SPI.begin();
+
     // initialize serial communication
-    // (38400 chosen because it works as well at 8MHz as it does at 16MHz, but
-    // it's really up to you depending on your project)
     Serial.begin(38400);
 
     // initialize device
@@ -68,24 +67,23 @@ void setup() {
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
-    // configure Arduino LED for
+    // configure Arduino LED
     pinMode(LED_PIN, OUTPUT);
+    pinMode(chipSelectPin, OUTPUT);
 }
 uint8_t count = 0;
 unsigned long start_time = 0;
 unsigned long end_time = 0;
 unsigned long time_taken = 0;
-uint8_t mag_enabled_time = 0;
-bool mag_enabled = false;
 void loop() {
     end_time = micros();
     time_taken = end_time-start_time;
     // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
-    
-    // these methods (and a few others) are also available
+   
     //accelgyro.getAcceleration(&ax, &ay, &az);
     //accelgyro.getRotation(&gx, &gy, &gz);
+    //accelgyro.getMag(&mx, &my, &mz);
 
     // display tab-separated accel/gyro x/y/z values
     Serial.print("Freq: ");
@@ -101,6 +99,13 @@ void loop() {
     Serial.print(mx); Serial.print("\t");
     Serial.print(my); Serial.print("\t");
     Serial.println(mz);
+
+    //Send via SPI
+    SPI.beginTransaction(SPISettings(2000, MSBFIRST, SPI_MODE0));
+    digitalWrite(chipSelectPin, LOW);
+    
+    digitalWrite(chipSelectPin, HIGH);
+    SPI.endTransaction();
 
     // blink LED to indicate activity
     blinkState = !blinkState;
