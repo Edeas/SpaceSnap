@@ -78,14 +78,13 @@ unsigned long time_taken = 0;
 void loop() {
     end_time = micros();
     time_taken = end_time-start_time;
-    // read raw accel/gyro measurements from device
     accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
    
     //accelgyro.getAcceleration(&ax, &ay, &az);
     //accelgyro.getRotation(&gx, &gy, &gz);
     //accelgyro.getMag(&mx, &my, &mz);
 
-    // display tab-separated accel/gyro x/y/z values
+    //TODO Remove prints
     Serial.print("Freq: ");
     Serial.print(1000000/time_taken);
     Serial.print(" - - ");
@@ -100,10 +99,13 @@ void loop() {
     Serial.print(my); Serial.print("\t");
     Serial.println(mz);
 
+    //TODO Parity bit?
+    //TODO Package structure
+
     //Send via SPI
     SPI.beginTransaction(SPISettings(2000, MSBFIRST, SPI_MODE0));
     digitalWrite(chipSelectPin, LOW);
-    
+    //TODO Actually send packages
     digitalWrite(chipSelectPin, HIGH);
     SPI.endTransaction();
 
