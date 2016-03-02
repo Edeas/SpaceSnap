@@ -45,8 +45,6 @@ int16_t gx, gy, gz;
 
 #define chipSelectPin 10
 
-#define LED_PIN 13
-bool blinkState = false;
 
 void setup() {
     // join I2C bus
@@ -66,10 +64,9 @@ void setup() {
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
 
-    // configure Arduino LED
-    pinMode(LED_PIN, OUTPUT);
     pinMode(chipSelectPin, OUTPUT);
 }
+//TODO remove frequency logic
 uint8_t count = 0;
 unsigned long start_time = 0;
 unsigned long end_time = 0;
@@ -98,6 +95,7 @@ void loop() {
 
     //Calculate parity bit
     int bitSum = 0;
+    
     bitSum += readBitSum(ax);
     bitSum += readBitSum(ay);
     bitSum += readBitSum(az);
@@ -119,12 +117,10 @@ void loop() {
     SPI.transfer(address, gy);
     SPI.transfer(address, gz);
     SPI.transfer(address, bitRead(parity, 0)); //Tror denne returnerer int uansett
+    
     digitalWrite(chipSelectPin, HIGH);
     SPI.endTransaction();
 
-    // blink LED to indicate activity
-    blinkState = !blinkState;
-    digitalWrite(LED_PIN, blinkState);
     start_time = end_time;
     count++;
 }
