@@ -73,9 +73,10 @@ unsigned long time_taken = 0;
 void loop() {
     end_time = micros();
     time_taken = end_time-start_time;
-    //Get data from IMU
+    //----------------------------Get data from IMU----------------------------------
     accelgyro.getAcceleration(&ax, &ay, &az);
     accelgyro.getRotation(&gx, &gy, &gz);
+    //-------------------------------------------------------------------------------
 
     //TODO Remove prints
     Serial.print("Freq: ");
@@ -89,10 +90,7 @@ void loop() {
     Serial.print(gy); Serial.print("\t");
     Serial.println(gz); Serial.print("\t");
 
-
-    byte address = 0x00; //TODO correct the address
-
-    //Calculate parity bit
+    //---------------------------Calculate parity bit--------------------------------
     int bitSum = 0;
     
     bitSum += readBitSum(ax);
@@ -103,9 +101,13 @@ void loop() {
     bitSum += readBitSum(gz);
 
     int parity = bitSum & 0x01;
+    //-------------------------------------------------------------------------------
      
 
-    //Send via SPI
+    //-------------------------------Send via SPI------------------------------------
+    
+    byte address = 0x00; //TODO correct the address
+    
     SPI.beginTransaction(SPISettings(2000, MSBFIRST, SPI_MODE0));
     digitalWrite(chipSelectPin, LOW);
     //Actually send packages
@@ -119,6 +121,7 @@ void loop() {
     
     digitalWrite(chipSelectPin, HIGH);
     SPI.endTransaction();
+    //-------------------------------------------------------------------------------
 
     start_time = end_time;
     count++;
