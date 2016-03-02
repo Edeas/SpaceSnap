@@ -42,9 +42,8 @@ MPU6050 accelgyro;
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
-int16_t mx, my, mz;
 
-#define chipSelectPin 7
+#define chipSelectPin 10
 
 #define LED_PIN 13
 bool blinkState = false;
@@ -78,34 +77,48 @@ unsigned long time_taken = 0;
 void loop() {
     end_time = micros();
     time_taken = end_time-start_time;
-    accelgyro.getMotion9(&ax, &ay, &az, &gx, &gy, &gz, &mx, &my, &mz);
    
-    //accelgyro.getAcceleration(&ax, &ay, &az);
-    //accelgyro.getRotation(&gx, &gy, &gz);
-    //accelgyro.getMag(&mx, &my, &mz);
+    accelgyro.getAcceleration(&ax, &ay, &az);
+    accelgyro.getRotation(&gx, &gy, &gz);
 
     //TODO Remove prints
     Serial.print("Freq: ");
     Serial.print(1000000/time_taken);
     Serial.print(" - - ");
-    Serial.print("a/g/m:\t");
+    Serial.print("a/g:\t");
     Serial.print(ax); Serial.print("\t");
     Serial.print(ay); Serial.print("\t");
     Serial.print(az); Serial.print("\t");
     Serial.print(gx); Serial.print("\t");
     Serial.print(gy); Serial.print("\t");
-    Serial.print(gz); Serial.print("\t");
-    Serial.print(mx); Serial.print("\t");
-    Serial.print(my); Serial.print("\t");
-    Serial.println(mz);
+    Serial.println(gz); Serial.print("\t");
 
-    //TODO Parity bit?
-    //TODO Package structure
+
+    byte address = 0x00; //TODO correct the address
+
+    //Calculate parity bit
+    int bitSum = 0;
+    bitSum += readBitSum(ax);
+    bitSum += readBitSum(ay);
+    bitSum += readBitSum(az);
+    bitSum += readBitSum(gx);
+    bitSum += readBitSum(gy);
+    bitSum += readBitSum(gz);
+
+    int parity = bitSum & 0x01;
+     
 
     //Send via SPI
     SPI.beginTransaction(SPISettings(2000, MSBFIRST, SPI_MODE0));
     digitalWrite(chipSelectPin, LOW);
-    //TODO Actually send packages
+    //Actually send packages
+    SPI.transfer(address, ax);
+    SPI.transfer(address, ay);
+    SPI.transfer(address, az);
+    SPI.transfer(address, gx);
+    SPI.transfer(address, gy);
+    SPI.transfer(address, gz);
+    SPI.transfer(address, bitRead(parity, 0)); //Tror denne returnerer int uansett
     digitalWrite(chipSelectPin, HIGH);
     SPI.endTransaction();
 
@@ -115,3 +128,12 @@ void loop() {
     start_time = end_time;
     count++;
 }
+
+int readBitSum(int16_t value){
+    int bitSum = 0;
+    for (int i = 0; i < 16; i++){
+        bitSum += bitRead(value, i);
+    }
+    return bitSum;
+}
+
