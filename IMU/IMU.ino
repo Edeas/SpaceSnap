@@ -29,17 +29,16 @@ THE SOFTWARE.
 ===============================================
 */
 
-// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
-// is used in I2Cdev.h
+//Import libraries
 #include "Wire.h"
-
-// I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
-// for both classes must be in the include path of your project
 #include "I2Cdev.h"
 #include "MPU6050.h"
 #include <SPI.h>;
+
+//Define IMU
 MPU6050 accelgyro;
 
+//Define axes
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
@@ -74,7 +73,7 @@ unsigned long time_taken = 0;
 void loop() {
     end_time = micros();
     time_taken = end_time-start_time;
-   
+    //Get data from IMU
     accelgyro.getAcceleration(&ax, &ay, &az);
     accelgyro.getRotation(&gx, &gy, &gz);
 
