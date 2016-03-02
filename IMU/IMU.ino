@@ -79,7 +79,7 @@ void loop() {
     //-------------------------------------------------------------------------------
 
     //TODO Remove prints
-    Serial.print("Freq: ");
+    /*Serial.print("Freq: ");
     Serial.print(1000000/time_taken);
     Serial.print(" - - ");
     Serial.print("a/g:\t");
@@ -88,7 +88,7 @@ void loop() {
     Serial.print(az); Serial.print("\t");
     Serial.print(gx); Serial.print("\t");
     Serial.print(gy); Serial.print("\t");
-    Serial.println(gz); Serial.print("\t");
+    Serial.println(gz); Serial.print("\t");*/
 
     //---------------------------Calculate parity bit--------------------------------
     int bitSum = 0;
@@ -100,24 +100,21 @@ void loop() {
     bitSum += readBitSum(gy);
     bitSum += readBitSum(gz);
 
-    int parity = bitSum & 0x01;
+    byte parity = bitSum & 0x01;
     //-------------------------------------------------------------------------------
-     
 
     //-------------------------------Send via SPI------------------------------------
-    
-    byte address = 0x00; //TODO correct the address
     
     SPI.beginTransaction(SPISettings(2000, MSBFIRST, SPI_MODE0));
     digitalWrite(chipSelectPin, LOW);
     //Actually send packages
-    SPI.transfer(address, ax);
-    SPI.transfer(address, ay);
-    SPI.transfer(address, az);
-    SPI.transfer(address, gx);
-    SPI.transfer(address, gy);
-    SPI.transfer(address, gz);
-    SPI.transfer(address, bitRead(parity, 0)); //Tror denne returnerer int uansett
+    SPI.transfer(&ax, sizeof(int16_t));
+    SPI.transfer(&ay, sizeof(int16_t));
+    SPI.transfer(&az, sizeof(int16_t));
+    SPI.transfer(&gx, sizeof(int16_t));
+    SPI.transfer(&gy, sizeof(int16_t));
+    SPI.transfer(&gz, sizeof(int16_t));
+    SPI.transfer(&parity, sizeof(int8_t));
     
     digitalWrite(chipSelectPin, HIGH);
     SPI.endTransaction();
@@ -133,5 +130,21 @@ int readBitSum(int16_t value){
         bitSum += bitRead(value, i);
     }
     return bitSum;
+}
+
+int8_t split16BitsMSSeg(int16_t value){
+    int8_t value1 = 0;
+    for (int i = 8; i < 16; i++){
+        bitWrite(value1, i-8, bitRead(value, i));
+    }
+    return value1;
+}
+
+int8_t split16BitsLSSeg(int16_t value){
+    int8_t value1 = 0;
+    for (int i = 0; i < 8; i++){
+        bitWrite(value1, i, bitRead(value, i));
+    }
+    return value1;
 }
 
