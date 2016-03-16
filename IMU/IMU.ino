@@ -103,17 +103,43 @@ void loop() {
     byte parity = bitSum & 0x01;
     //-------------------------------------------------------------------------------
 
+
+    //--------------------------------Split data-------------------------------------
+
+    int8_t axMS = split16BitsMSSeg(ax);
+    int8_t axLS = split16BitsLSSeg(ax);
+    int8_t ayMS = split16BitsMSSeg(ay);
+    int8_t ayLS = split16BitsLSSeg(ay);
+    int8_t azMS = split16BitsMSSeg(az);
+    int8_t azLS = split16BitsLSSeg(az);
+
+    int8_t gxMS = split16BitsMSSeg(gx);
+    int8_t gxLS = split16BitsLSSeg(gx);
+    int8_t gyMS = split16BitsMSSeg(gy);
+    int8_t gyLS = split16BitsLSSeg(gy);
+    int8_t gzMS = split16BitsMSSeg(gz);
+    int8_t gzLS = split16BitsLSSeg(gz);
+
+    
+    //-------------------------------------------------------------------------------
+
     //-------------------------------Send via SPI------------------------------------
     
     SPI.beginTransaction(SPISettings(2000, MSBFIRST, SPI_MODE0));
     digitalWrite(chipSelectPin, LOW);
     //Actually send packages
-    SPI.transfer(&ax, sizeof(int16_t));
-    SPI.transfer(&ay, sizeof(int16_t));
-    SPI.transfer(&az, sizeof(int16_t));
-    SPI.transfer(&gx, sizeof(int16_t));
-    SPI.transfer(&gy, sizeof(int16_t));
-    SPI.transfer(&gz, sizeof(int16_t));
+    SPI.transfer(&axMS, sizeof(int8_t));
+    SPI.transfer(&axLS, sizeof(int8_t));
+    SPI.transfer(&ayMS, sizeof(int8_t));
+    SPI.transfer(&ayLS, sizeof(int8_t));
+    SPI.transfer(&azMS, sizeof(int8_t));
+    SPI.transfer(&azLS, sizeof(int8_t));
+    SPI.transfer(&gxMS, sizeof(int8_t));
+    SPI.transfer(&gxLS, sizeof(int8_t));
+    SPI.transfer(&gyMS, sizeof(int8_t));
+    SPI.transfer(&gyLS, sizeof(int8_t));
+    SPI.transfer(&gzMS, sizeof(int8_t));
+    SPI.transfer(&gzLS, sizeof(int8_t));
     SPI.transfer(&parity, sizeof(int8_t));
     
     digitalWrite(chipSelectPin, HIGH);
